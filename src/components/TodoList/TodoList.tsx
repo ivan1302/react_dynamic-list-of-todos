@@ -1,4 +1,5 @@
 import React from 'react';
+import classNames from 'classnames';
 import { Todo } from '../../types/Todo';
 
 type Props = {
@@ -31,7 +32,9 @@ export const TodoList: React.FC<Props> = ({ todos, onShow, selectedTodo }) => {
             <tr
               key={todo.id}
               data-cy="todo"
-              className={todo.completed ? 'has-background-success-light' : ''}
+              className={classNames({
+                'has-background-success-light': todo.completed,
+              })}
             >
               <td className="is-vcentered">{todo.id}</td>
 
@@ -46,14 +49,13 @@ export const TodoList: React.FC<Props> = ({ todos, onShow, selectedTodo }) => {
                 )}
               </td>
 
-              <td className="is-vcentered is-expanded">
-                <p
-                  className={
-                    todo.completed ? 'has-text-success' : 'has-text-danger'
-                  }
-                >
-                  {todo.title}
-                </p>
+              <td
+                className={classNames('is-vcentered is-expanded', {
+                  'has-text-success': todo.completed,
+                  'has-text-danger': !todo.completed,
+                })}
+              >
+                {todo.title}
               </td>
 
               <td className="has-text-right is-vcentered">

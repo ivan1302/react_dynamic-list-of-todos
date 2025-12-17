@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Status } from '../../types/Status';
 
 type TodoFilterProps = {
@@ -12,23 +12,16 @@ export const TodoFilter: React.FC<TodoFilterProps> = ({
   searchText,
   onFilterChange,
 }) => {
-  const [localStatus, setLocalStatus] = useState<Status>(status);
-  const [localSearchText, setLocalSearchText] = useState(searchText);
-
-  useEffect(() => {
-    onFilterChange(localStatus, localSearchText);
-  }, [localStatus, localSearchText, onFilterChange]);
-
   const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setLocalStatus(event.target.value as Status);
+    onFilterChange(event.target.value as Status, searchText);
   };
 
   const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalSearchText(event.target.value);
+    onFilterChange(status, event.target.value);
   };
 
   const handleClear = () => {
-    setLocalSearchText('');
+    onFilterChange(status, '');
   };
 
   return (
@@ -37,7 +30,7 @@ export const TodoFilter: React.FC<TodoFilterProps> = ({
         <span className="select">
           <select
             data-cy="statusSelect"
-            value={localStatus}
+            value={status}
             onChange={handleStatusChange}
           >
             <option value={Status.All}>All</option>
@@ -53,14 +46,14 @@ export const TodoFilter: React.FC<TodoFilterProps> = ({
           type="text"
           className="input"
           placeholder="Search..."
-          value={localSearchText}
+          value={searchText}
           onChange={handleTextChange}
         />
         <span className="icon is-left">
           <i className="fas fa-magnifying-glass" />
         </span>
 
-        {localSearchText && (
+        {searchText && (
           <span className="icon is-right" style={{ pointerEvents: 'all' }}>
             <button
               data-cy="clearSearchButton"

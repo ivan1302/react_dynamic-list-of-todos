@@ -4,10 +4,10 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import 'bulma/css/bulma.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 
-import { TodoList } from './components/TodoList';
-import { TodoFilter } from './components/TodoFilter';
-import { TodoModal } from './components/TodoModal';
-import { Loader } from './components/Loader';
+import { TodoList } from './components/TodoList/TodoList';
+import { TodoFilter } from './components/TodoFilter/TodoFilter';
+import { TodoModal } from './components/TodoModal/TodoModal';
+import { Loader } from './components/Loader/Loader';
 
 import { Todo } from './types/Todo';
 import { User } from './types/User';
@@ -26,27 +26,48 @@ export const App: React.FC = () => {
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
+  // Load todos
   useEffect(() => {
     setIsTodosLoading(true);
-
     getTodos()
       .then(setTodoList)
       .finally(() => setIsTodosLoading(false));
   }, []);
 
-  const handleShow = (todo: Todo) => {
-    setSelectedTodo(todo);
-    setSelectedUser(null);
+  // Fetch user on selectedTodo change
+  useEffect(() => {
+    if (!selectedTodo) {
+      return;
+    }
+
+    let cancelled = false;
+
     setIsUserLoading(true);
-
-    getUser(todo.userId)
-      .then(setSelectedUser)
-      .finally(() => setIsUserLoading(false));
-  };
-
-  const handleClose = () => {
-    setSelectedTodo(null);
     setSelectedUser(null);
+
+    getUser(selectedTodo.userId)
+      .then(user => {
+        if (!cancelled) {
+          setSelectedUser(user);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsUserLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTodo]);
+
+  const handleShow = (todo: Todo) => {
+    if (selectedTodo?.id === todo.id) {
+      setSelectedTodo(null); // hide
+    } else {
+      setSelectedTodo(todo); // show
+    }
   };
 
   const handleFilterChange = useCallback(
@@ -94,7 +115,7 @@ export const App: React.FC = () => {
                 <TodoList
                   todos={filteredTodos}
                   onShow={handleShow}
-                  selectedTodo={selectedTodo} // додаємо для hide/show логіки
+                  selectedTodo={selectedTodo}
                 />
               )}
             </div>
@@ -105,7 +126,7 @@ export const App: React.FC = () => {
       <TodoModal
         todo={selectedTodo}
         user={isUserLoading ? null : selectedUser}
-        onClose={handleClose}
+        onClose={() => setSelectedTodo(null)}
         isOpen={Boolean(selectedTodo)}
       />
     </>
